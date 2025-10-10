@@ -8,7 +8,7 @@ List-of-Symbol ::= ()
 Recursive procedures rely on an important principle:
 | The Smaller-Subproblem Principle |
 |:--------------------------------:|
-|If we reduce a problem to a smaller subproblem, we can call the procedure to that solves the problem to solve the subproblem.|
+|If we reduce a problem to a smaller subproblem, we can call the procedure that solves the problem to solve the subproblem.|
 
 ## 1.2.1 list-length
 ```scheme

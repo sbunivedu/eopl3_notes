@@ -48,6 +48,9 @@ We can summarize these cases in the rules:
 * If the expression `e` is of the form `(e1 e2)`, then `x` occurs free in `e` if and only if it occurs free in `e1` or `e2`.
 
 ```scheme
+#lang eopl
+
+; occurs-free? : Sym × LcExp → Bool
 (define occurs-free?
   (lambda (var exp)
     (cond
@@ -60,6 +63,14 @@ We can summarize these cases in the rules:
        (or
         (occurs-free? var (car exp))
         (occurs-free? var (cadr exp)))))))
+
+(trace occurs-free?)
+; (occurs-free? 'x 'x) => #t
+; (occurs-free? 'x 'y) => #f
+; (occurs-free? 'x '(lambda (x) (x y))) => #f
+; (occurs-free? 'x '(lambda (y) (x y))) => #t
+; (occurs-free? 'x '((lambda (x) x) (x y))) => #t
+; (occurs-free? 'x '(lambda (y) (lambda (z) (x (y z))))) => #t
 ```
 
 (section 2.3) We can improve `occurs-free?`  by introducing an interface for lambda-calculus expressions. Our interface will have constructors and two kinds of observers: predicates and extractors.

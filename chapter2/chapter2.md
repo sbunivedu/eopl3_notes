@@ -1,3 +1,70 @@
+# The Environment Interface
+An environment is a function whose domain is a finite set of variables, and whose range is the set of all Scheme values. A finite function is a finite set of ordered pairs, the first part of each pair is a distinct variable and the second part can be any Scheme value. We sometimes call the value of the varaible `var` in an enviroment `env` its binding in `env`.
+
+The interface to an environment data type has three procedures. The procedure `empty-env`, applied to no arguments, must produce a representation of an environment of the empty environment; `apply-env` applies a representation of an environment to a variable and `(extend-env var val env)` produces a new environment that behaves like `env`, except that its value at varaible `var` is `val`. For example, the expression
+```
+> (define e
+      (extend-env ’d 6
+        (extend-env ’y 8
+          (extend-env ’x 7
+            (extend-env ’y 14
+              (empty-env))))))
+```
+defines an environment `e`, in which `d` is bound to `6`, `x` is bound to `7`, `y` is bound to `8`, and `e` is undefined on any other variables.
+
+In this design, the `empty-env` procedure and `extend-env` procedure are constructors and `apply-env` is the only observor.
+
+## Data Structure Representation
+
+```scheme
+#lang eopl
+
+; empty-env : () → Env
+(define empty-env
+  (lambda () (list 'empty-env)))
+
+; extend-env : Var × SchemeVal × Env → Env
+(define extend-env
+  (lambda (var val env)
+    (list 'extend-env var val env)))
+
+; apply-env : Env × Var → SchemeVal
+(define apply-env
+  (lambda (env search-var)
+    (cond
+      ((eqv? (car env) 'empty-env) (report-no-binding-found search-var))
+      ((eqv? (car env) 'extend-env)
+       (let ((saved-var (cadr env))
+             (saved-val (caddr env))
+             (saved-env (cadddr env)))
+         (if (eqv? search-var saved-var)
+             saved-val
+             (apply-env saved-env search-var))))
+      (else
+       (report-invalid-env env)))))
+
+(define report-no-binding-found
+  (lambda (search-var)
+    (eopl:error 'apply-env "No binding for ~s" search-var)))
+
+(define report-invalid-env
+  (lambda (env)
+    (eopl:error 'apply-env "Bad environment: ~s" env)))
+
+(define e
+      (extend-env 'd 6
+        (extend-env 'y 8
+          (extend-env 'x 7
+            (extend-env 'y 14
+              (empty-env))))))
+
+; (apply-env e 'x) => 7
+; (apply-env e 'y) => 8
+; (apply-env e 'd) => 6
+; (apply-env e 'z) => apply-env: No binding for z
+```
+
+
 Our interface will have constructors and two kinds of observers: predicates and extractors.
 The constructors are:
 ```

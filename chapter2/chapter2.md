@@ -15,7 +15,11 @@ defines an environment `e`, in which `d` is bound to `6`, `x` is bound to `7`, `
 In this design, the `empty-env` procedure and `extend-env` procedure are constructors and `apply-env` is the only observor.
 
 ## Data Structure Representation
-
+We can represent a environment by an expression in the following grammar:
+```
+Env-exp ::= (empty-env)
+        ::= (extend-env Identifier Scheme-value Env-exp)
+```
 ```scheme
 #lang eopl
 
@@ -64,6 +68,50 @@ In this design, the `empty-env` procedure and `extend-env` procedure are constru
 ; (apply-env e 'z) => apply-env: No binding for z
 ```
 
+## Procedural Representation
+The environment interface has an important property: it ahs exactly one observer, `apply-env`. This allows us to represent an environment as a Scheme procedure that takes a variable and returns its associated value.
+
+To do this, we define empty-env and extend-env to return procedures that, when applied, do the same thing that apply-env did in the "data structure repsentation". This gives us the following implementation.
+
+```scheme
+#lang eopl
+
+; Env = Var → SchemeVal
+
+; empty-env : () → Env
+(define empty-env
+  (lambda ()
+    (lambda (search-var)
+      (report-no-binding-found search-var))))
+
+; extend-env : Var × SchemeVal × Env → Env
+(define extend-env
+  (lambda (saved-var saved-val saved-env)
+    (lambda (search-var)
+      (if (eqv? search-var saved-var) saved-val
+          (apply-env saved-env search-var)))))
+
+; apply-env : Env × Var → SchemeVal
+(define apply-env
+  (lambda (env search-var)
+    (env search-var)))
+
+(define report-no-binding-found
+  (lambda (search-var)
+    (eopl:error 'apply-env "No binding for ~s" search-var)))
+
+(define e
+      (extend-env 'd 6
+        (extend-env 'y 8
+          (extend-env 'x 7
+            (extend-env 'y 14
+              (empty-env))))))
+
+; (apply-env e 'x) => 7
+; (apply-env e 'y) => 8
+; (apply-env e 'd) => 6
+; (apply-env e 'z) => apply-env: No binding for z
+```
 
 Our interface will have constructors and two kinds of observers: predicates and extractors.
 The constructors are:

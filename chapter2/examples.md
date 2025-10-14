@@ -142,7 +142,9 @@ Each of these extracts the corresponding portion of the lambda-calculus expressi
 ```
 occurs-free? : Sym × LcExp → Bool
 ```
-```
+```scheme
+#lang eopl
+
 (define occurs-free?
     (lambda (search-var exp)
       (cond
@@ -337,79 +339,4 @@ Lc-exp ::= Identifier
 
 ; (define p (parse-expression '(lambda (x) (f (f x)))))
 ; (unparse-lc-exp p) => (lambda (x) (f (f x))
-```
-
-Exercise 2.31 [⋆⋆] Sometimes it is useful to specify a concrete syntax as a sequence of symbols and integers, surrounded by parentheses. For example, one might define the set of prefix lists by
-```
-Prefix-list ::=(Prefix-exp)
-Prefix-exp  ::= Int
-            ::=- Prefix-exp Prefix-exp
-```
-so that `(- - 3 2 - 4 - 12 7)` is a legal prefix list. This is sometimes called Polish prefix notation, after its inventor, Jan Łukasiewicz. Write a parser to convert a prefix-list to the abstract syntax
-```
-(define-datatype prefix-exp prefix-exp?
-  (const-exp
-   (num integer?))
-  (diff-exp
-   (operand1 prefix-exp?)
-   (operand2 prefix-exp?)))
-```
-so that the example above produces the same abstract syntax tree as the sequence of constructors
-```
-(diff-exp
- (diff-exp
-  (const-exp 3)
-  (const-exp 2))
- (diff-exp
-  (const-exp 4)
-  (diff-exp
-   (const-exp 12)
-   (const-exp 7))))
-```
-As a hint, consider writing a procedure that takes a list and produces a prefix-exp and the list of leftover list elements.
-
-solution
-```scheme
-#lang eopl
-
-(define-datatype prefix-exp prefix-exp?
-  (const-exp
-   (num integer?))
-  (diff-exp
-   (operand1 prefix-exp?)
-   (operand2 prefix-exp?)))
-
-(define-datatype parse-result parse-result?
-  (a-parse-result
-   (exp prefix-exp?)
-   (rest list?)))
-
-(define parse-expression
-  (lambda (prefix-list)
-    (cases parse-result (parse-prefix-exps prefix-list)
-      (a-parse-result (exp rest)
-                      (if (null? rest)
-                          exp
-                          (eopl:error 'parse-expression "Unused rest: ~s" rest))))))
-
-(define parse-prefix-exps
-  (lambda (prefix-exps)
-    (if (pair? prefix-exps)
-        (let ((prefix-exp (car prefix-exps))
-              (rest (cdr prefix-exps)))
-          (cond ((integer? prefix-exp)
-                 (a-parse-result (const-exp prefix-exp) rest))
-                ((eqv? prefix-exp '-)
-                 (cases parse-result (parse-prefix-exps rest)
-                   (a-parse-result (exp1 rest1)
-                     (cases parse-result (parse-prefix-exps rest1)
-                       (a-parse-result (exp2 rest2)
-                                       (a-parse-result (diff-exp exp1 exp2) rest2))))))
-                (else
-                 (eopl:error 'parse-expression
-                             "Expected integer or -, got ~s" prefix-exp))))
-        (eopl:error 'parse-expression "Not a prefix list: ~s" prefix-exps))))
-
-(trace parse-expression)
-#(parse-expression '(- - 3 2 - 4 - 12 7))
 ```

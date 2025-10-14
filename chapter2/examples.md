@@ -14,7 +14,7 @@ defines an environment `e`, in which `d` is bound to `6`, `x` is bound to `7`, `
 
 In this design, the `empty-env` procedure and `extend-env` procedure are constructors and `apply-env` is the only observor.
 
-## Data Structure Representation
+## 2.2.2 Data Structure Representation
 We can represent a environment by an expression in the following grammar:
 ```
 Env-exp ::= (empty-env)
@@ -68,7 +68,7 @@ Env-exp ::= (empty-env)
 ; (apply-env e 'z) => apply-env: No binding for z
 ```
 
-## Procedural Representation
+## 2.2.3 Procedural Representation
 The environment interface has an important property: it ahs exactly one observer, `apply-env`. This allows us to represent an environment as a Scheme procedure that takes a variable and returns its associated value.
 
 To do this, we define empty-env and extend-env to return procedures that, when applied, do the same thing that apply-env did in the "data structure repsentation". This gives us the following implementation.
@@ -113,7 +113,10 @@ To do this, we define empty-env and extend-env to return procedures that, when a
 ; (apply-env e 'z) => apply-env: No binding for z
 ```
 
-Our interface will have constructors and two kinds of observers: predicates and extractors.
+## 2.3 Interfaces for Recursive Data Types
+
+We will make `occurs-free?` more readable by introducing an interface for lambda calculus expressions. Our interface will have constructors and two kinds of observers: predicates and extractors.
+
 The constructors are:
 ```
 var-exp : Var → Lc-exp
@@ -134,6 +137,7 @@ lambda-exp->body : Lc-exp → Lc-exp
 app-exp->rator : Lc-exp → Lc-exp
 app-exp->rand : Lc-exp → Lc-exp
 ```
+
 Each of these extracts the corresponding portion of the lambda-calculus expression. We can now write a version of `occurs-free?` that depends only on the interface.
 ```
 occurs-free? : Sym × LcExp → Bool
@@ -148,6 +152,8 @@ occurs-free? : Sym × LcExp → Bool
               (occurs-free? search-var (lambda-exp->body exp))))
         (else (or (occurs-free? search-var (app-exp->rator exp))
                   (occurs-free? search-var (app-exp->rand exp)))))))
+
+; to run the following test cases, the interface procedures must defined as shown in the next code block
 
 ;(occurs-free? 'y (var-exp 'x)) => #f (N/A)
 ;(occurs-free? 'y (var-exp 'y)) => #t
@@ -221,6 +227,7 @@ Exercise 2.15 [*] Implement the lambda-calculus expression interface for the rep
 ;(app-exp->rand (app-exp (lambda-exp 'x 'x) (var-exp 'a))) => a
 ```
 
+## 2.4 A Tool for Defining Recursive Data Types
 Consider again the data type of lambda-calculus expressions, as discussed in the preceding section. We can implement an interface for lambda-calculus expressions by writing
 ```
 (define-datatype lc-exp lc-exp? (var-exp

@@ -231,15 +231,22 @@ Exercise 2.15 [*] Implement the lambda-calculus expression interface for the rep
 
 ## 2.4 A Tool for Defining Recursive Data Types
 Consider again the data type of lambda-calculus expressions, as discussed in the preceding section. We can implement an interface for lambda-calculus expressions by writing
-```
-(define-datatype lc-exp lc-exp? (var-exp
-      (var identifier?))
-    (lambda-exp
-      (bound-var identifier?)
-      (body lc-exp?))
-    (app-exp
-      (rator lc-exp?)
-      (rand lc-exp?)))
+```scheme
+#lang eopl
+
+(define-datatype lc-exp lc-exp?
+  (var-exp
+   (var identifier?))
+  (lambda-exp
+   (bound-var identifier?)
+   (body lc-exp?))
+  (app-exp
+   (rator lc-exp?)
+   (rand lc-exp?)))
+
+(define identifier?
+  (lambda (x)
+           (symbol? x)))
 ```
 Here the names `var-exp`, `var`, `bound-var`, `app-exp`, `rator`, and `rand` abbreviate `variable expression`, `variable`, `bound variable`, `application expression`, `operator`, and `operand`, respectively.
 

@@ -269,6 +269,8 @@ occurs-free? : Sym × LcExp → Bool
    (rator lc-exp?)
    (rand lc-exp?)))
 
+(define identifier? symbol?)
+
 (define occurs-free?
   (lambda (search-var exp)
     (cases lc-exp exp
